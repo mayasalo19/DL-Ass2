@@ -9,7 +9,7 @@ A PyTorch-based project exploring neural network training, seed robustness, vali
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Setup](#setup)
-- [Questions & Results](#questions--results)
+- [Results](#results)
   - [Q1 – Baseline Training](#q1--baseline-training)
   - [Q2 – Seed Robustness](#q2--seed-robustness)
   - [Q3 – Validation-Based Model Selection](#q3--validation-based-model-selection)
@@ -23,7 +23,7 @@ A PyTorch-based project exploring neural network training, seed robustness, vali
 This project implements a **2-layer fully connected neural network** for classifying MNIST digits (0–9). The experiments progressively build on each other:
 
 | Question | Topic | Goal |
-|----------|-------|------|
+|:--------:|-------|------|
 | Q1 | Baseline training | Train, evaluate, and identify misclassified images |
 | Q2 | Seed analysis | Measure variance across 5 random seeds |
 | Q3 | Validation set | Use a held-out validation set for early stopping |
@@ -49,7 +49,7 @@ Input (784) ──▶ Linear (784 → 500) ──▶ ReLU ──▶ Linear (500 
 | Learning rate | 0.001 |
 | Epochs | 5 |
 | Batch size | 100 |
-| Training data | 10% of MNIST (~6 000 samples) |
+| Training data | 10 % of MNIST (~6 000 samples) |
 
 ---
 
@@ -77,34 +77,32 @@ pip install torch torchvision matplotlib numpy pandas scikit-learn
 python code.py
 ```
 
-> MNIST data will be automatically downloaded to `./data/` on the first run.
+> MNIST data will be automatically downloaded to `./data/` on the first run.  
+> All figures are saved to the `figures/` directory.
 
 ---
 
-## Questions & Results
+## Results
 
 ### Q1 – Baseline Training
 
-The network was trained for **5 epochs** using the hyperparameters listed above. This was done by replicating the code shown in class, using the same hyperparameters.
+The network was trained for **5 epochs** using the baseline hyperparameters listed above. This was done by replicating the code shown in class, using the same hyperparameters.
 
-**What the code produces:**
+#### Train & Test Loss
 
-- **Train & Test loss curves** — a line plot showing how both losses decrease over epochs.
+<p align="center">
+  <img src="figures/q1_train_test_loss.png" alt="Q1 – Train and Test Loss" width="600"/>
+</p>
 
-```
-Epoch [1/5], Train Loss: X.XXXX, Train Acc: XX.XX%, Test Loss: X.XXXX, Test Acc: XX.XX%
-Epoch [2/5], ...
-...
-```
+Both train and test loss decrease steadily over the 5 training epochs, indicating the model is learning without significant overfitting.
 
-- **Misclassified images grid** — a 2×5 grid showing 10 test images the model got wrong, along with the true and predicted labels.
+#### Misclassified Images
 
-| | | | | |
-|---|---|---|---|---|
-| True: 5 / Pred: 3 | True: 4 / Pred: 9 | ... | ... | ... |
-| True: 7 / Pred: 1 | True: 2 / Pred: 8 | ... | ... | ... |
+<p align="center">
+  <img src="figures/q1_misclassified.png" alt="Q1 – Misclassified Images" width="650"/>
+</p>
 
-*(Actual digits and predictions vary by run)*
+A 2×5 grid of test images the model predicted incorrectly, shown with their true and predicted labels. These tend to be ambiguous or poorly written digits.
 
 ---
 
@@ -112,18 +110,19 @@ Epoch [2/5], ...
 
 The full training pipeline from Q1 was repeated with **5 different seeds**: `[2, 13, 56, 100, 523]`.
 
-**Key finding:** The variance was low across all runs. This tells us the model is **robust to the choice of seed** — the random initialization does not significantly affect the final performance.
+#### Test Error Across Seeds
 
-**What the code produces:**
+<p align="center">
+  <img src="figures/q2_seed_robustness.png" alt="Q2 – Seed Robustness" width="600"/>
+</p>
 
-- **Test error curves** for each seed overlaid on a single plot.
-- **Statistics** printed to console:
+| Metric | Description |
+|--------|-------------|
+| **Mean test error** | Computed across 5 seeds |
+| **Std deviation** | Low — consistent performance |
+| **Variance** | Low — seed-robust model |
 
-| Metric | Value |
-|--------|-------|
-| Mean test error | Computed across 5 seeds |
-| Std deviation | Low value → consistent performance |
-| Variance | Low value → seed-robust model |
+**Key finding:** The variance was low across all runs. From this we can conclude that our model is **robust to the choice of seeds** — the random initialization does not significantly affect the final performance.
 
 ---
 
@@ -131,20 +130,23 @@ The full training pipeline from Q1 was repeated with **5 different seeds**: `[2,
 
 A **validation set of 1 000 samples** was randomly sampled from the training data. For each of the 5 seeds, the epoch with the **minimum validation error** was selected, and the corresponding test error was reported.
 
-**What the code produces:**
+#### Test & Validation Error Curves
 
-- Per-seed table:
+<p align="center">
+  <img src="figures/q3_test_validation_errors.png" alt="Q3 – Test and Validation Errors" width="650"/>
+</p>
+
+#### Per-Seed Summary
 
 | Seed | Min Validation Error | Corresponding Test Error |
-|------|---------------------|-------------------------|
-| 2 | ... | ... |
-| 13 | ... | ... |
-| 56 | ... | ... |
-| 100 | ... | ... |
-| 523 | ... | ... |
+|:----:|:--------------------:|:------------------------:|
+| 2 | — | — |
+| 13 | — | — |
+| 56 | — | — |
+| 100 | — | — |
+| 523 | — | — |
 
-- **Combined plot** of test and validation error curves for every seed.
-- The seed/epoch combination with the **overall lowest validation error** and its corresponding test error.
+> The seed/epoch combination with the **overall lowest validation error** and its corresponding test error is printed to the console.
 
 ---
 
@@ -153,56 +155,47 @@ A **validation set of 1 000 samples** was randomly sampled from the training dat
 A **grid search** was performed over three hyperparameters:
 
 | Hyperparameter | Values |
-|---------------|--------|
+|:--------------:|--------|
 | Batch size | 100, 200, 300 |
-| Hidden size | 500, 1000, 1500 |
+| Hidden size | 500, 1 000, 1 500 |
 | Learning rate | 0.001, 0.01, 0.1 |
 
-This yields **27 combinations** in total. For each, the model was trained and evaluated using the validation procedure from Q3.
+This yields **27 combinations** in total. For each combination, the model was trained and evaluated using the validation procedure from Q3.
 
-**What the code produces:**
-
-- A **results table** (pandas DataFrame) with all 27 combinations, their validation error, and corresponding test error.
-- The **best combination** is highlighted — the one with the lowest validation error.
+#### Results Table (excerpt)
 
 | Batch Size | Hidden Size | Learning Rate | Validation Error | Test Error |
-|-----------|-------------|---------------|-----------------|------------|
-| 100 | 500 | 0.001 | ... | ... |
-| 100 | 500 | 0.01 | ... | ... |
-| ... | ... | ... | ... | ... |
+|:----------:|:-----------:|:-------------:|:----------------:|:----------:|
+| 100 | 500 | 0.001 | — | — |
+| 100 | 500 | 0.01 | — | — |
+| … | … | … | … | … |
+
+> The complete 27-row table and the **best hyperparameter combination** (lowest validation error) are printed when running the code.
 
 ---
 
 ### Q5 – t-SNE Feature Visualization
 
-Two **t-SNE** (t-distributed Stochastic Neighbor Embedding) plots are generated side-by-side:
+Two **t-SNE** (t-distributed Stochastic Neighbor Embedding) plots compare the internal representations learned by the network:
 
-1. **t-SNE of hidden features z_i** — the output of the first linear layer + ReLU
-2. **t-SNE of original inputs x_i** — the raw 784-dimensional pixel vectors
+1. **Hidden features z_i** — output of the first linear layer + ReLU  
+2. **Original inputs x_i** — raw 784-dimensional pixel vectors
 
-Each point is color-coded by its digit class (0–9).
+<p align="center">
+  <img src="figures/q5_tsne.png" alt="Q5 – t-SNE Visualization" width="750"/>
+</p>
 
-**Key finding:**
+#### Analysis
 
-> The most significant difference between the plots is that in the **x_i plot** there is noticeable **overlapping between clusters** and a higher number of points in the wrong cluster. In the **z_i plot**, there is a much more **distinct separation** between each cluster and far fewer misplaced points.
+| Aspect | x_i (raw input) | z_i (learned features) |
+|--------|:----------------:|:----------------------:|
+| Cluster separation | Overlapping clusters | Well-separated clusters |
+| Misplaced points | Higher count | Significantly fewer |
+| Interpretability | Harder to distinguish digits | Clear digit boundaries |
 
-This tells us the first layer of the network **successfully learns features useful for classification**, as shown by the clear cluster separation in the z_i embedding.
+**Key finding:** The most significant difference between the plots is that in the **x_i plot** there is noticeable **overlapping between clusters** and a higher number of points in the wrong cluster. In the **z_i plot**, there is a much more **distinct separation** between each cluster and far fewer misplaced points.
 
-| x_i (raw input) | z_i (learned features) |
-|:---:|:---:|
-| Overlapping clusters | Well-separated clusters |
-| Harder to distinguish digits | Clear digit boundaries |
-
----
-
-## Project Structure
-
-```
-code (5)/
-├── code.py        # All experiments (Q1–Q5)
-├── README.md      # This file
-└── data/          # MNIST dataset (auto-downloaded)
-```
+This tells us the first layer of the network **successfully learns features useful for classification**, as demonstrated by the clear cluster separation in the z_i embedding.
 
 ---
 
